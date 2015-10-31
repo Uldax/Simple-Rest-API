@@ -20,7 +20,6 @@ var auth = {
         var username = req.body.username || '';
         var password = req.body.password || '';
         var dbUserObj = auth.validate(username, password);
-        // If authentication fails
         if  (!dbUserObj) {
                 res.status(401);
                 res.json({
