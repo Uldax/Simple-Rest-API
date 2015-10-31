@@ -51,6 +51,7 @@ app.use(function(req, res, next) {
 // START THE SERVER
 // =============================================================================
 app.set('port', process.env.PORT || 8080);
+//console.log('stack', app._router.stack);
 var server = app.listen(app.get('port'), function() {
     console.log('Magic happens on port ' + server.address().port);
 });
