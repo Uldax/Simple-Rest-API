@@ -1,38 +1,46 @@
 var jwt = require('jwt-simple');
 var User = require('../models/user');
+var Promise = require('promise');
 
 var auth = {
     // Fire a query to your DB and check if the credentials are valid
+    // must be promises
     validate: function(username, password) {
-        // spoofing the DB response for simplicity
-       if (username === '' || password === '') {
-            return;
-       }
-       User.findOne( { 'username' : username, 'password':password}, function(err, user) {
-            if (err) {
-                return ;
+        console.log("validate username= " + username + " and password = " + password);
+        return new Promise(function(resolve, reject) {
+            if (username === '' || password === '') {
+                reject("empty credentials");
             }
-            return user;
+            User.find({
+                'username': username,
+                'password': password
+            }, function(err, user) {
+                if (err) {
+                    reject(err);
+                }
+                //todo check user length
+                resolve(user);
+            });
         });
     },
 
+    //http://localhost:8080/login
     login: function(req, res) {
         var username = req.body.username || '';
         var password = req.body.password || '';
-        var dbUserObj = auth.validate(username, password);
-        if  (!dbUserObj) {
+        auth.validate(username, password)
+            .then(function(user) {
+                // If authentication is success, we will generate a token
+                // and dispatch it to the client
+                res.json(genToken(user));
+            })
+            .catch(function(err) {
                 res.status(401);
                 res.json({
-                "status": 401,
-                "message": "Invalid credentials"
+                    "status": 401,
+                    "message": "Invalid credentials"
+                });
             });
-            return;
-        }
-        else {
-            // If authentication is success, we will generate a token
-            // and dispatch it to the client
-            res.json(genToken(dbUserObj));
-        }
     },
 };
 
