@@ -6,7 +6,6 @@ var auth = {
     // Fire a query to your DB and check if the credentials are valid
     // must be promises
     validate: function(username, password) {
-        console.log("validate username= " + username + " and password = " + password);
         return new Promise(function(resolve, reject) {
             if (username === '' || password === '') {
                 reject("empty credentials");
@@ -18,21 +17,31 @@ var auth = {
                 if (err) {
                     reject(err);
                 }
-                //todo check user length
-                resolve(user);
+                if (user.length === 1) {
+                    resolve(user[0]);
+                } else {
+                    reject("database error");
+                }
+
             });
         });
     },
-    //Call after token check to get user role and information
-    //Todo use db call
+    //Call after token token check to get user role and information
     validateUser: function(username) {
-        // spoofing the DB response for simplicity
-        var dbUserObj = { // spoofing a userobject from the DB.
-            name: 'admin',
-            role: 'admin',
-            username: 'admin'
-        };
-        return dbUserObj;
+        return new Promise(function(resolve, reject) {
+            User.find({
+                'username': username
+            }, function(err, user) {
+                if (err) {
+                    reject(err);
+                }
+                if (user.length === 1) {
+                    resolve(user[0]);
+                } else {
+                    reject("multiple user");
+                }
+            });
+        });
     },
 
     //http://localhost:8080/login
@@ -45,11 +54,11 @@ var auth = {
                 // and dispatch it to the client
                 res.json(genToken(user));
             })
-            .catch(function(err) {
+            .catch(function(errMessage) {
                 res.status(401);
                 res.json({
                     "status": 401,
-                    "message": "Invalid credentials"
+                    "message": errMessage
                 });
             });
     },

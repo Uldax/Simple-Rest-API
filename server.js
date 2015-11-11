@@ -5,6 +5,8 @@ var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
 var logger = require('morgan');
+var fs = require('fs');
+var FileStreamRotator = require('file-stream-rotator');
 
 //Connect to database
 var mongoose = require('mongoose');
@@ -16,7 +18,21 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 app.use(bodyParser.json());
-app.use(logger('dev'));
+
+//logger
+var logDirectory = __dirname + '/log';
+// ensure log directory exists
+fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory);
+// create a rotating write stream
+var accessLogStream = FileStreamRotator.getStream({
+  filename: logDirectory + '/access-%DATE%.log',
+  frequency: 'daily',
+  verbose: false
+});
+
+// setup the logger
+app.use(logger('combined', {stream: accessLogStream}));
+
 
 //Set CORS headers
 app.all('/*', function(req, res, next) {
