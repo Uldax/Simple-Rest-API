@@ -35,17 +35,16 @@ app.all('/*', function(req, res, next) {
 
 //ROUTING
 // =============================================================================
-app.use('/', require('./app/routes'));
 
 // Auth Middleware - This will check if the token is valid
-// Only the requests that start with /api/v1/* will be checked for the token.
+// Only the requests that start with /api/* will be checked for the token.
 app.all('/api/*', require('./app/middlewares/validateRequest'));
+app.use('/', require('./app/routes'));
 
 // If no route is matched by now, it must be a 404
 app.use(function(req, res, next) {
-    var err = new Error('URL Not Found');
-    err.status = 404;
-    next(err);
+    res.status(404)        // HTTP status 404: NotFound
+   .send('URL Not found');
 });
 
 // START THE SERVER
