@@ -1,133 +1,72 @@
 // BASE SETUP
 // =============================================================================
 
-// call the packages we need
-var express = require('express');  // call express
-var app        = express();                  // define our app using express
+var express = require('express');
+var app = express();
 var bodyParser = require('body-parser');
+var logger = require('morgan');
+var fs = require('fs');
+var FileStreamRotator = require('file-stream-rotator');
+
+//Connect to database
+var mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/testBear'); // connect to local database
 
 // configure app to use bodyParser()
 // this will let us get the data from a POST
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
 app.use(bodyParser.json());
 
-var port = process.env.PORT || 8080;        // set our port
-
-//config database
-var mongoose   = require('mongoose');
-mongoose.connect('mongodb://localhost/testBear'); // connect to our database
-//mongoose.connect('mongodb://node:node@novus.modulusmongo.net:27017/Iganiq8o');
-var Bear     = require('./app/models/bear');
-
-//routing
-//var router = require('./app/routing');  // call express
-var router = express.Router();     // get an instance of the express Router
-// middleware to use for all requests
-router.use(function(req, res, next) {
-    // do logging
-    //  We can do validations to make sure that everything coming from a request is safe and sound.
-    console.log('Something is happening.');
-    next(); // make sure we go to the next routes and don't stop here
+//logger
+var logDirectory = __dirname + '/log';
+// ensure log directory exists
+fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory);
+// create a rotating write stream
+var accessLogStream = FileStreamRotator.getStream({
+  filename: logDirectory + '/access-%DATE%.log',
+  frequency: 'daily',
+  verbose: false
 });
 
-// test route to make sure everything is working (accessed at GET http://localhost:8080/api)
-router.get('/', function(req, res) {
-    res.json({ message: 'hooray! welcome to our api!' });
+// setup the logger
+app.use(logger('combined', {stream: accessLogStream}));
+
+
+//Set CORS headers
+app.all('/*', function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*"); // restrict it to the required domain
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    // Set custom headers for CORS
+    res.header('Access-Control-Allow-Headers', 'Content-type,Accept,X-Access-Token,X-Key');
+    // When performing a cross domain request, you will recieve
+    // a preflighted request first. This is to check if our the app is safe.
+    if (req.method == 'OPTIONS') {
+        res.status(200).end();
+    } else {
+        next();
+    }
 });
 
-// create a bear (accessed at POST http://localhost:8080/api/bears)
+//ROUTING
+// =============================================================================
 
-router.route('/bears')
-    .post(function(req, res) {
-        console.log('yeay post');
-    })
-    // get all the bears (accessed at GET http://localhost:8080/api/bears)
-    .get(function(req, res) {
-        console.log("get Bears");
-        Bear.find(function(err, bears) {
-            if (err) {
-                res.send(err);
-            }
-            console.log(bears);
-            res.json(bears);
-        });
-    });
+// Auth Middleware - This will check if the token is valid
+// Only the requests that start with /api/* will be checked for the token.
+app.all('/api/*', require('./app/middlewares/validateRequest'));
+app.use('/', require('./app/routes'));
 
-router.route('/bear')
-    .post(function(req, res) {
-        var bear = new Bear();
-        bear.name = req.body.name;
-
-        bear.save(function(err){
-          if (err) {
-                res.send(err);
-          } else {
-                console.log('bear saved!');
-                res.json({ message: 'Bear created!' });
-            }
-        });
-    })
-    // get all the bears (accessed at GET http://localhost:8080/api/bears)
-    .get(function(req, res) {
-        console.log("get Bears");
-        Bear.find(function(err, bears) {
-            if (err) {
-                res.send(err);
-            }
-            res.json(bears);
-        });
-    });
-
-router.route('/bears/:bear_id')
-    // get the bear with that id (accessed at GET http://localhost:8080/api/bears/:bear_id)
-    .get(function(req, res) {
-        Bear.findById(req.params.bear_id, function(err, bear) {
-            if (err) {
-                res.send(err);
-            }
-            res.json(bear);
-        });
-    })
-    // update the bear with this id (accessed at PUT http://localhost:8080/api/bears/:bear_id)
-    .put(function(req, res) {
-
-        // use our bear model to find the bear we want
-        Bear.findById(req.params.bear_id, function(err, bear) {
-            if (err) {
-                res.send(err);
-            }
-
-            bear.name = req.body.name;  // update the bears info
-
-            // save the bear
-            bear.save(function(err) {
-                if (err){
-                    res.send(err);
-                }
-                res.json({ message: 'Bear updated!' });
-            });
-
-        });
-    })
-     // delete the bear with this id (accessed at DELETE http://localhost:8080/api/bears/:bear_id)
-    .delete(function(req, res) {
-        Bear.remove({
-            _id: req.params.bear_id
-        }, function(err, bear) {
-            if (err) {
-                res.send(err);
-            }
-
-            res.json({ message: 'Successfully deleted' });
-        });
-    });
-
-
-// REGISTER OUR ROUTES -------------------------------
-// all of our routes will be prefixed with /api
-app.use('/api', router);
+// If no route is matched by now, it must be a 404
+app.use(function(req, res, next) {
+    res.status(404)        // HTTP status 404: NotFound
+   .send('URL Not found');
+});
 
 // START THE SERVER
 // =============================================================================
-app.listen(port);
-console.log('Magic happens on port ' + port);
+app.set('port', process.env.PORT || 8080);
+//console.log('stack', app._router.stack);
+var server = app.listen(app.get('port'), function() {
+    console.log('Magic happens on port ' + server.address().port);
+});
