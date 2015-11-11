@@ -23,6 +23,17 @@ var auth = {
             });
         });
     },
+    //Call after token check to get user role and information
+    //Todo use db call
+    validateUser: function(username) {
+        // spoofing the DB response for simplicity
+        var dbUserObj = { // spoofing a userobject from the DB.
+            name: 'admin',
+            role: 'admin',
+            username: 'admin'
+        };
+        return dbUserObj;
+    },
 
     //http://localhost:8080/login
     login: function(req, res) {
