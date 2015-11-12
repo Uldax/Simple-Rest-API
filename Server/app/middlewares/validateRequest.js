@@ -19,6 +19,8 @@ module.exports = function(req, res, next) {
                 return;
             }
 
+            //todo : use decoded.user.name;
+
             //if no admin acces needed, allow public acess
             if (req.url.indexOf('admin') < 0 && req.url.indexOf('/api/') >= 0) {
                 next(); // To move to next middleware
