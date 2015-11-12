@@ -1,19 +1,20 @@
-<div class="container" ng-controller="Page2Ctrl">
+<div class="container" ng-controller="Page3Ctrl">
   <div class="page-header">
-    <h3>This is from {{ name }}</h3>
+    <h3>List of bears from the REST API
+      <code>/api/bears</code>
+    </h3>
   </div>
 
-  <p class="lead">Demo a simple factory
-    <code>todosFactory</code> <a href="http://thejackalofjavascript.com/mean-stack-hands-on-tutorial" target="_blank">source</a>
-  </p>
 
   <p class="lead">
-    <table class="table">
-      <tr ng-repeat="todo in todos">
-        <td><b>Todo</b> : {{todo.todo}}
-        </td>
-        <td>
-          <em>isCompleted</em>: {{todo.isCompleted}}</td>
+    <table class="table table-striped">
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+      </tr>
+      <tr ng-repeat="p in bears">
+        <td>{{p._id}}</td>
+        <td>{{p.name}}</td>
       </tr>
     </table>
   </p>
