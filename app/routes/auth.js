@@ -1,5 +1,6 @@
 var jwt = require('jwt-simple');
 var User = require('../models/user');
+var request = require("request");
 var Promise = require('promise');
 
 var auth = {
@@ -25,6 +26,47 @@ var auth = {
 
             });
         });
+    },
+
+    validateGoogleToken: function(req, res) {
+        var token = req.body.token;
+        if (token === undefined || token === null) {
+            res.status(401);
+            res.json({
+                "status": 401,
+                "message": "invalid token"
+            });
+        } else {
+            console.log("Token receive ");
+            //To validate an ID token using the tokeninfo endpoint, make an HTTPS POST or GET request to the endpoint, and pass your ID token in the id_token (for google)
+            var endpoint = "https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + token;
+            request(endpoint, function(err, response, body) {
+                if (!err && response.statusCode === 200) {
+                    console.log(body);
+                    if (body.sub) {
+                        var user = {
+                            username: "test",
+                            role: "user"
+                        };
+                        res.json(genToken(user));
+                    } else {
+                        res.status(401);
+                        res.json({
+                            "status": 401,
+                            "message": "Wrong toker"
+                        });
+                    }
+
+                } else {
+                    res.status(401);
+                    res.json({
+                        "status": 401,
+                        "message": err
+                    });
+                }
+            });
+        }
+
     },
     //Call after token token check to get user role and information
     validateUser: function(username) {

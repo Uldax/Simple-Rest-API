@@ -11,6 +11,7 @@ router.get('/', function(req, res) {
 
 // Routes that can be accessed by any one
 router.post('/login', auth.login);
+router.post('/tokensignin', auth.validateGoogleToken);
 
 //Routes that can be accessed only by autheticated users
 router.get('/api/bears', bears.getAll);
