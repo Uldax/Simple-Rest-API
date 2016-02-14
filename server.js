@@ -1,5 +1,5 @@
 // BASE SETUP
-// =============================================================================
+// =====================================================
 
 var express = require('express');
 var app = express();
@@ -39,7 +39,7 @@ app.all('/*', function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*"); // restrict it to the required domain
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
     // Set custom headers for CORS
-    res.header('Access-Control-Allow-Headers', 'Content-type,Accept,X-Access-Token,X-Key');
+    res.header('Access-Control-Allow-Headers', 'Content-type,Accept,X-Access-Token');
     // When performing a cross domain request, you will recieve
     // a preflighted request first. This is to check if our the app is safe.
     if (req.method == 'OPTIONS') {
@@ -50,7 +50,7 @@ app.all('/*', function(req, res, next) {
 });
 
 //ROUTING
-// =============================================================================
+// =========================================================
 
 // Auth Middleware - This will check if the token is valid
 // Only the requests that start with /api/* will be checked for the token.
@@ -64,7 +64,7 @@ app.use(function(req, res, next) {
 });
 
 // START THE SERVER
-// =============================================================================
+// ==========================================================
 app.set('port', process.env.PORT || 8080);
 //console.log('stack', app._router.stack);
 var server = app.listen(app.get('port'), function() {
