@@ -1,7 +1,7 @@
 {
-  "name": "node-api",
+  "name": "express-REST-api",
   "version": "0.1.0",
-  "description": "RESTfulServ",
+  "description": "Ready to use private express REST API",
   "main": "server.js",
   "dependencies": {
     "body-parser": "~1.0.1",
