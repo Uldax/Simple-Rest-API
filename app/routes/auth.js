@@ -42,10 +42,12 @@ var auth = {
             var endpoint = "https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + token;
             request(endpoint, function(err, response, body) {
                 if (!err && response.statusCode === 200) {
-                    console.log(body);
-                    if (body.sub) {
+                    //Parse repsonse into JSON
+                    var info = JSON.parse(body);
+                    console.log(info);
+                    if (info.sub) {
                         var user = {
-                            username: "test",
+                            username: info.sub,
                             role: "user"
                         };
                         res.json(genToken(user));
