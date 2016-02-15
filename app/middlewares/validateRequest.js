@@ -1,6 +1,4 @@
 var jwt = require('jwt-simple');
-var validateUser = require('../routes/auth').validateUser;
-
 module.exports = function(req, res, next) {
     var token = (req.body && req.body.access_token) || (req.query && req.query.access_token) || req.headers['x-access-token'];
     console.log("token receive=  " + token);
