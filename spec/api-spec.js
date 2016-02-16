@@ -1,0 +1,43 @@
+var frisby = require('frisby');
+var domain = 'http://localhost:8080/',
+    apiPath = domain + 'api/',
+    createUser = domain + 'user',
+    deleteUser = apiPath + 'user',
+    accessToken = domain + 'login',
+    email = 'test@test.test.com',
+    password = 'password'
+
+frisby.create('User creation login')
+    .post(createUser, {
+        email: email,
+        password: password
+    })
+    .expectStatus(200)
+    .after(function(err, res, body) {
+        frisby.create('Get access token')
+            .post(accessToken, {
+                email: email,
+                password: password,
+            })
+            .expectStatus(200)
+            .expectHeaderContains('content-type', 'application/json')
+            .expectJSONTypes({
+                token: String,
+                user: Object
+            })
+            .afterJSON(function(json) {
+                /* include auth token in the header of all future requests */
+                frisby.globalSetup({
+                    request: {
+                        headers: {
+                            'x-access-token': json.token
+                        }
+                    }
+                });
+                frisby.create('Delete user')
+                    .delete(deleteUser)
+                    .expectStatus(204)
+                    .toss();
+            }).toss()
+    })
+    .toss(); //generates the final Jasmine test spec

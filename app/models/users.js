@@ -1,16 +1,19 @@
-var mongoose     = require('mongoose');
+var mongoose = require('mongoose');
 var counter = require('./counter');
-var Schema       = mongoose.Schema;
+var Schema = mongoose.Schema;
 
-var UsersSchema   = new Schema({
-    _id: String,
+var UsersSchema = new Schema({
+    _id: {
+        type: String,
+        unique: true
+    },
     email: {
         type: String,
         unique: true,
         required: true,
         dropDups: true
     }, //login
-    password : String,
+    password: String,
     picture: {
         type: String,
         default: null
@@ -21,12 +24,17 @@ var UsersSchema   = new Schema({
         default: 'default'
     },
     name: {
-        first: String,
-        last: String
+        first: {
+            type: String,
+            default: null
+        },
+        last: {
+            type: String,
+            default: null
+        },
     },
-    role : String
-},
-{
+    role: String
+}, {
     toObject: {
         virtuals: true
     },
@@ -63,20 +71,4 @@ UsersSchema.pre('save', function(next) {
         next();
     });
 });
-
-//Exemple setting user
-var User = mongoose.model('users', UsersSchema);
-var userTest = new User();
-userTest.email = "admin@api.fr";
-userTest.password = "admin";
-userTest.role = "admin";
-userTest.name = {
-    first: "super",
-    last: "admin"
-};
-userTest.save(function(err) {
-    if (err) console.log(err.err);
-});
-
-module.exports = User;
-
+module.exports = mongoose.model('users', UsersSchema);

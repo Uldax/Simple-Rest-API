@@ -1,5 +1,5 @@
-var jwt = require('jwt-simple');
-var Users = require('../models/users');
+
+var User = require('../models/users');
 var auth = require('./auth.js');
 var request = require("request");
 var Promise = require('promise');
@@ -15,11 +15,15 @@ var googleAuth = {
                     //Parse response into JSON
                     var info = JSON.parse(body);
                     if (info.sub) {
+                        console.log("In validetoken token resolved");
                         resolve(info);
                     } else {
                         reject("Wrong token");
                     }
                 } else {
+                    if (response.statusCode === 400) {
+                        reject('Bad Request');
+                    }
                     reject(err);
                 }
             });
@@ -35,21 +39,19 @@ var googleAuth = {
             });
         }
         googleAuth.validateToken(token)
-            .then(function(infoUser) {
-                //Check if user already exist or first connexion
-                checkFirstConnexion(info.email)
-                    .then(function(user) {
-                        var token = auth.genToken(user);
-                        res.json(token);
-                    })
+            .then(checkFirstConnexion)
+            .then(function(user) {
+                var token = auth.genToken(user);
+                res.json(token);
             })
-            .catch(function(errMessage) {
-                res.status(401);
-                res.json({
-                    "status": 401,
-                    "error": errMessage
-                });
+        .catch(function(errMessage) {
+            res.status(401);
+            console.log(errMessage);
+            res.json({
+                "status": 401,
+                "error": errMessage
             });
+        });
     }
 }
 
@@ -70,44 +72,26 @@ function createGoogleUserObject(info) {
     return user;
 }
 
-function checkFirstConnexion(email) {
+function checkFirstConnexion(info) {
     return new Promise(function(resolve, reject) {
-            Promise.resolve(User.findOne({
-                        'email': email
-                    })
-                    .select({
-                        name: 1,
-                        role: 1,
-                        _id: 1,
-                        type: 1,
-                        picture: 1
-                    })
-                    .exec())
-                .then(function(user) {
-                    if (user === null) {
-                        var user = createGoogleUserObject(info);
-                        saveGoogleUserObject(user)
-                            .then(function() {
-                                resolve(user);
-                            })
-                    }
+        var userObject = createGoogleUserObject(info).toObject();
+        User.findOneAndUpdate({
+                _id: userObject._id
+            },
+            userObject,
+               {upsert: true,
+               new: true})
+            .exec(function(err, user) {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                }
+                if (user !== null) {
                     resolve(user);
-                })
-        })
-        .catch(function(errMessage) {
-            reject(errMessage);
-        });
-}
-
-function saveGoogleUserObject(UserObject) {
-    return new Promise(function(resolve, reject) {
-        userObject.save(function(err) {
-            if (err) {
-                reject(err);
-            } else {
-                resolve("User created!");
-            }
-        });
+                } else {
+                    reject("This user doesn't exist");
+                }
+            });
     });
 }
 module.exports = googleAuth;

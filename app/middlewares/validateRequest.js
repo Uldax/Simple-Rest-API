@@ -1,7 +1,6 @@
 var jwt = require('jwt-simple');
 module.exports = function(req, res, next) {
     var token = (req.body && req.body.access_token) || (req.query && req.query.access_token) || req.headers['x-access-token'];
-    console.log("token receive=  " + token);
     if (token) {
         try {
             var decoded = jwt.decode(token, require('../config/secret.js')());
@@ -15,6 +14,7 @@ module.exports = function(req, res, next) {
             }
             //if no admin acces needed, allow public acess
             if (req.url.indexOf('admin') < 0 && req.url.indexOf('/api/') >= 0) {
+                req.userId = decoded.userId;
                 next();
             } else {
                 if (req.url.indexOf('admin') >= 0 && decoded.user.role == 'admin') {
@@ -35,14 +35,14 @@ module.exports = function(req, res, next) {
             res.json({
                 "status": 500,
                 "message": "Oops something went wrong",
-                "error": err
+                "error": err.message
             });
         }
     } else {
         res.status(401);
         res.json({
             "status": 401,
-            "message": "Invalid Token or Key"
+            "message": "Invalid Token"
         });
         return;
     }

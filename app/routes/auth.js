@@ -11,16 +11,16 @@ var auth = {
             if (email === '' || password === '') {
                 reject("empty credentials");
             }
-            Users.find({
-                    'username': email,
-                    'password': password
+            Users.findOne({
+                    'email': email,
+                    'password': password,
+                    //Prevent brute force google account
+                    'type':  'default'
                 })
                 //Virtuals are NOT available for document queries or field selection.
                 .select({
                     name: 1,
                     role: 1,
-                    _id: 1,
-                    type: 1,
                     picture: 1
                 })
                 .exec(function(err, user) {
@@ -28,9 +28,8 @@ var auth = {
                         console.log(err);
                         reject(err);
                     }
-                    //Prevent brute force google account
-                    if (user.length === 1 && user[0].type === 'default') {
-                        resolve(user[0]);
+                    if (user !== null ) {
+                        resolve(user);
                     } else {
                         reject("This user doesn't exist");
                     }
@@ -47,7 +46,7 @@ var auth = {
             .then(function(user) {
                 // If authentication is success, we will generate a token
                 // and dispatch it to the client
-                res.json(genToken(user));
+                res.json(auth.genToken(user));
             })
             .catch(function(errMessage) {
                 res.status(401);
@@ -60,12 +59,13 @@ var auth = {
 
     genToken : function(user) {
         var expires = expiresIn(7); // 7 days
+        console.log(user._id);
         var token = jwt.encode({
-            exp: expires
+            exp: expires,
+            userId: user._id
         }, require('../config/secret')());
         return {
             token: token,
-            expires: expires,
             user: user
         };
     }

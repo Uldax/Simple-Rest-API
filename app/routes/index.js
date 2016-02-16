@@ -7,11 +7,15 @@ var bears = require('./bears.js');
 var users = require('./users.js');
 // Test route (accessed at GET http://localhost:8080/api)
 router.get('/', function(req, res) {
-    res.json({ message: 'hooray! welcome to our api!' });
+    res.json({ message: 'hooray! welcome to magic api!' });
 });
 
 
 // Routes that can be accessed by any one
+// Add secret between client app and server to access this route ?
+router.post('/user', users.create);
+router.delete('/api/user', users.delete);
+
 router.post('/login', auth.login);
 router.post('/googleLogin', googleAuth.login);
 
@@ -25,7 +29,6 @@ router.delete('/api/bears/:id', bears.delete);
 //Routes that can be accessed only by authenticated & authorized users
 router.get('/api/users/all', users.getAll);
 router.get('/api/users', users.get); //?id=X,Y,Z
-router.post('/api/user/', users.create);
 router.put('/api/user/:id', users.update);
 router.delete('/api/admin/user/:id', users.delete);
 

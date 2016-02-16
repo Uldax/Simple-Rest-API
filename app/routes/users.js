@@ -2,21 +2,23 @@ var User = require('../models/users');
 
 function formatJsonError(err){
     console.log(err);
-    var jsonError = { error: err.err  };
+    var jsonError = {
+        error: err.err
+    };
     return jsonError;
 }
 
-function createUserObject(reqBody){
-        var user = new User();
-        user.email = reqBody.email;
-        var name = {
-            first: reqBody.first,
-            last: reqBody.last,
-        };
-        user.name = name;
-        user.password = reqBody.password;
-        user.role = reqBody.role;
-        return user
+function createUserObject(reqBody) {
+    var user = new User();
+    user.email = reqBody.email;
+    var name = {
+        first: reqBody.first,
+        last: reqBody.last,
+    };
+    user.name = name;
+    user.password = reqBody.password;
+    user.role = reqBody.role;
+    return user
 }
 
 var user = {
@@ -94,28 +96,28 @@ var user = {
 
     delete: function(req, res) {
         User.remove({
-            _id: req.params.id
+            _id: req.userId
         }, function(err, bear) {
             if (err) {
                 res.json(formatJsonError(err));
             }
-            res.json({
-                message: 'Successfully deleted'
-            });
+            res.status(204).send();
         });
     },
 
-    createUserObject: function(reqBody){
-            var user = new User();
-            user.email = reqBody.email;
+    createUserObject: function(reqBody) {
+        var user = new User();
+        user.email = reqBody.email;
+        if (typeof reqBody.first != 'undefined' && typeof reqBody.last != 'undefined') {
             var name = {
                 first: reqBody.first,
                 last: reqBody.last,
             };
             user.name = name;
-            user.password = reqBody.password;
-            user.role = reqBody.role;
-            return user
+        }
+        user.password = reqBody.password;
+        user.role = "user";
+        return user
     }
 };
 
