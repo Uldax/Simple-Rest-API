@@ -1,21 +1,19 @@
-
 var User = require('../models/users');
 var auth = require('./auth.js');
 var request = require("request");
 var Promise = require('promise');
 
 var googleAuth = {
-    //Validate the token receive from google api
+    /*To validate an ID token using the tokeninfo endpoint, make an HTTPS
+    POST or GET request and pass your id_token (for google) */
     validateToken: function(token) {
         return new Promise(function(resolve, reject) {
-            //To validate an ID token using the tokeninfo endpoint, make an HTTPS POST or GET request to the endpoint, and pass your ID token in the id_token (for google)
             var endpoint = "https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + token;
             request(endpoint, function(err, response, body) {
                 if (!err && response.statusCode === 200) {
                     //Parse response into JSON
                     var info = JSON.parse(body);
                     if (info.sub) {
-                        console.log("In validetoken token resolved");
                         resolve(info);
                     } else {
                         reject("Wrong token");
@@ -44,14 +42,13 @@ var googleAuth = {
                 var token = auth.genToken(user);
                 res.json(token);
             })
-        .catch(function(errMessage) {
-            res.status(401);
-            console.log(errMessage);
-            res.json({
-                "status": 401,
-                "error": errMessage
+            .catch(function(errMessage) {
+                res.status(401);
+                res.json({
+                    "status": 401,
+                    "error": errMessage
+                });
             });
-        });
     }
 }
 
@@ -76,14 +73,14 @@ function checkFirstConnexion(info) {
     return new Promise(function(resolve, reject) {
         var userObject = createGoogleUserObject(info).toObject();
         User.findOneAndUpdate({
-                _id: userObject._id
-            },
-            userObject,
-               {upsert: true,
-               new: true})
+                    _id: userObject._id
+                },
+                userObject, {
+                    upsert: true, //insert if don't exist
+                    new: true //return the new document if created
+                })
             .exec(function(err, user) {
                 if (err) {
-                    console.log(err);
                     reject(err);
                 }
                 if (user !== null) {

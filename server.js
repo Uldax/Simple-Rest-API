@@ -53,7 +53,7 @@ app.all('/api/*', require('./app/middlewares/validateRequest'));
 app.use('/', require('./app/routes'));
 // If no route is matched by now, it must be a 404
 app.use(function(req, res, next) {
-  res.status(404) // HTTP status 404: NotFound
+  res.status(404)
     .send('URL Not found');
 });
 

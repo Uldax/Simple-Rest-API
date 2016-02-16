@@ -3,6 +3,8 @@ var domain = 'http://localhost:8080/',
     apiPath = domain + 'api/',
     createUser = domain + 'user',
     deleteUser = apiPath + 'user',
+    doesntExist = apiPath + "doNotExist",
+    adminAccess = apiPath + "admin/users/all'",
     accessToken = domain + 'login',
     email = 'test@test.test.com',
     password = 'password'
@@ -12,7 +14,7 @@ frisby.create('User creation login')
         email: email,
         password: password
     })
-    .expectStatus(200)
+    .expectStatus(204)
     .after(function(err, res, body) {
         frisby.create('Get access token')
             .post(accessToken, {
@@ -34,9 +36,20 @@ frisby.create('User creation login')
                         }
                     }
                 });
-                frisby.create('Delete user')
-                    .delete(deleteUser)
-                    .expectStatus(204)
+                frisby.create('wrong route')
+                    .get(doesntExist)
+                    .expectStatus(404)
+                    .toss();
+
+                frisby.create('wrong admin access')
+                    .get(adminAccess)
+                    .expectStatus(403)
+                    .after(function(err, res, body) {
+                        frisby.create('Delete user')
+                            .delete(deleteUser)
+                            .expectStatus(204)
+                            .toss();
+                    })
                     .toss();
             }).toss()
     })

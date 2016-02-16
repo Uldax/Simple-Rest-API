@@ -15,7 +15,7 @@ var auth = {
                     'email': email,
                     'password': password,
                     //Prevent brute force google account
-                    'type':  'default'
+                    'type': 'default'
                 })
                 //Virtuals are NOT available for document queries or field selection.
                 .select({
@@ -28,7 +28,7 @@ var auth = {
                         console.log(err);
                         reject(err);
                     }
-                    if (user !== null ) {
+                    if (user !== null) {
                         resolve(user);
                     } else {
                         reject("This user doesn't exist");
@@ -57,12 +57,12 @@ var auth = {
             });
     },
 
-    genToken : function(user) {
+    genToken: function(user) {
         var expires = expiresIn(7); // 7 days
-        console.log(user._id);
         var token = jwt.encode({
             exp: expires,
-            userId: user._id
+            userId: user._id,
+            userRole: user.role
         }, require('../config/secret')());
         return {
             token: token,

@@ -68,16 +68,15 @@ var user = {
             if (err) {
                 res.json(formatJsonError(err));
             } else {
-                res.json({
-                    message: 'User created!'
-                });
+                res.status(204).send();
             }
         });
     },
 
+    //Todo : use findOneAndUpdate
     update: function(req, res) {
-        var id = req.params.id;
-        User.findById(req.params.id, function(err, user) {
+        var id = req.userId;
+        User.findById(id, function(err, user) {
             if (err) {
                 res.json(formatJsonError(err));
             }

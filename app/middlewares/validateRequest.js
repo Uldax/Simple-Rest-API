@@ -17,8 +17,8 @@ module.exports = function(req, res, next) {
                 req.userId = decoded.userId;
                 next();
             } else {
-                if (req.url.indexOf('admin') >= 0 && decoded.user.role == 'admin') {
-                    console.log('access granted');
+                if (req.url.indexOf('admin') >= 0 && decoded.userRole == 'admin') {
+                    req.userId = decoded.userId;
                     //TODO : Need double check database ?
                     next(); // To move to next middleware
                 } else {
